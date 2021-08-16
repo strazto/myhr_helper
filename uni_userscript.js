@@ -43,6 +43,15 @@
       topic_details : "P_TOPIC_DETAILS",
     };
 
+    const pairwise = function(arr, callback) {
+      const result = []
+      arr.reduce((prev, current) => {
+        result.push(callback(prev, current))
+        return current
+      })
+      return result
+    }
+
     const col_idx_by_content = function(tr, content_regex) {
         var tr_list = Array.from(tr.children);
         return tr_list.findIndex((th, i) => {if (th.textContent.match(content_regex)) return true;});
@@ -84,15 +93,29 @@
     const serialize_ts_form = (parent_form) => {
       const raw_data = new FormData(parent_form);
 
-      var out = {metadata : {}, entries : []};
-      for (let [k, v] of raw_data) {
-        console.log({k: k, v: v});
-        if (k == row_delimiter) break;
+      const data_arr = [...raw_data];
 
-        out.metadata[k] = v;
-      }
+      const delim_indices = data_arr
+        .reduce(
+          (out, elem, idx) => {
+            if (elem[0] == "P_LINE_AUDIT_ARRAY") out.push(idx);
+            return out;
+          }, [])
+        .concat(-1);
+      
+      const metadata_delim = delim_indices[0];
+
+      var out = {metadata : {}, entries : []};
+
+      out['metadata'] = Object.fromEntries(data_arr.slice(0, metadata_delim));
+
+      out['entries'] = pairwise(
+        delim_indices, 
+        (curr, next) => Object.fromEntries(data_arr.slice(curr, next))
+       );
 
       console.log(out);
+      return out;
     }
     
     const on_ts_form_ready = async () => {
