@@ -7,6 +7,7 @@
 // @match        https://myhr.sydney.edu.au/alesco-wss-v17/faces/WJ0000
 // @icon         https://www.google.com/s2/favicons?domain=sydney.edu.au
 // @grant        none
+// @run-at  document-end
 // ==/UserScript==
 
 (function() {
