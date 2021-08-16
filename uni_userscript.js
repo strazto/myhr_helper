@@ -5,6 +5,7 @@
 // @description  try to take over the world!
 // @author       You
 // @match        https://myhr.sydney.edu.au/alesco-wss-v17/faces/WJ0000
+// @match        https://uosp.ascenderpay.com/uosp-wss/faces/app/WJ0000*
 // @icon         https://www.google.com/s2/favicons?domain=sydney.edu.au
 // @grant        none
 // @run-at  document-end
