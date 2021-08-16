@@ -30,7 +30,7 @@
       topic_details : "^Topic Details$",
     };
     const row_delimiter = "P_LINE_AUDIT_ARRAY";
-
+    const autofilled_entry_fields = [ "P_JOB" ];
     const entry_input_names = {
       work_date     : "P_WORK_DATE",
       units         : "P_UNITS",
@@ -89,6 +89,15 @@
 
       return frameDoc.querySelectorAll("#F1");
     }
+    const is_entry_filled = (entry_object) => {
+      for (const field in entry_object ) {
+        if (! autofilled_entry_fields.includes(field) ) {
+          if (! entry_object[field] ) continue;
+          return entry_object.field !== "";
+        }
+      }
+      return false;
+    };
     
     const serialize_ts_form = (parent_form) => {
       const raw_data = new FormData(parent_form);
@@ -114,6 +123,7 @@
         (curr, next) => Object.fromEntries(data_arr.slice(curr, next))
        );
 
+      out['entries'] = out['entries'].filter(is_entry_filled);
       console.log(out);
       return out;
     }
