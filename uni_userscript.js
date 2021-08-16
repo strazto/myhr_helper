@@ -43,6 +43,12 @@
       topic_details : "P_TOPIC_DETAILS",
     };
 
+    const writable_fields = [
+      "P_WORK_DATE", "P_UNITS", "P_PAYCODE", "P_GL_OVERRIDE", "P_GL_ACCOUNT", "P_GL_SUB_ACCOUNT",
+      "P_TOPIC", "P_TOPIC_DETAILS"
+    ];
+
+
     const pairwise = function(arr, callback) {
       const result = []
       arr.reduce((prev, current) => {
@@ -157,7 +163,30 @@
     const fill_timesheet = (destination_form) => {
       
       const populate_dest = (e) => {
-        console.log({ dest: destination_form, payload: e.target.result});
+
+        const input_data = JSON.parse(e.target.result);
+        const input_entries = input_data.entries;
+        
+        console.log({ dest: destination_form, payload: input_data});
+
+
+        const ts_table = destination_form.querySelector("#TSEntry");
+        const ts_rows  = ts_table.children;
+        
+        input_entries.forEach((entry, i) => {
+          const row = ts_rows[i];
+
+          console.log({entry, i, row});
+
+          writable_fields.forEach(( field_name ) => {
+            var input_element = row.querySelector("[name='" + field_name + "']");
+            if (entry[field_name]) {
+              console.log({msg: "setting input element", input_element, field_name});
+              input_element.value = entry[field_name];
+            }
+          });
+        });
+
       }
 
       return populate_dest;
