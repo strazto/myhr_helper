@@ -153,6 +153,32 @@
 
       download_btn.click();
     }
+
+    const fill_timesheet = (destination_form) => {
+      
+      const populate_dest = (e) => {
+        console.log({ dest: destination_form, payload: e.target.result});
+      }
+
+      return populate_dest;
+    }
+
+    const import_entries = (e) => {
+      const file_list = e.target.files;
+
+      if (file_list.length < 1) return;
+
+      const file = file_list[0];
+      
+      const frameDoc = get_frame_document();
+      const ts_form = frameDoc.querySelector("#F1");
+
+      if (! ts_form) return false;
+      
+      const reader = new FileReader();
+      reader.onload = fill_timesheet(ts_form); 
+      reader.readAsText(file);
+    }
     
     const add_file_buttons = (ts_form) => {
 
@@ -171,9 +197,27 @@
         download_btn.download = "timesheets_job_" + job_number + "_start_" + start_date + ".json";
         download_btn.hidden = true;
 
+        var upload_input    = document.createElement("input");
+        upload_input.id     = "upload-timesheet";
+        upload_input.type   = "file";
+        upload_input.accept = "application/json";
+        upload_input.hidden = true;
+
+        
+        var upload_btn = document.createElement("button");
+        upload_btn.id = "import-timesheet";
+        upload_btn.textContent = "Import";
+
+        upload_btn.addEventListener("click", (e) => {
+          if (upload_input) upload_input.click();
+        }, false);
+
         ts_form.parentNode.insertBefore(export_btn, ts_form);
         ts_form.parentNode.insertBefore(download_btn, ts_form);
-        
+        ts_form.parentNode.insertBefore(upload_input, ts_form);
+        ts_form.parentNode.insertBefore(upload_btn, ts_form);
+
+        upload_input.addEventListener("change", import_entries);
         export_btn.addEventListener('click', export_entries);
     }
     
