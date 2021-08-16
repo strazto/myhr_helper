@@ -66,8 +66,8 @@
 
         return out;
     };
-    
-    const ts_form_selector = () => {
+
+    const get_frame_document = () => {
       const frames = document.querySelectorAll("iframe");
       var parent_frame = null;
 
@@ -78,7 +78,13 @@
       if (! parent_frame ) return null;
 
       const frameDoc = parent_frame.contentDocument;
+      return frameDoc;
+    }
+    
+    const ts_form_selector = () => {
+      const frameDoc = get_frame_document();
 
+      if (! frameDoc) return null;
       const parent_form = frameDoc.querySelector("#F1");
       
       if (! parent_form) return null;
@@ -128,6 +134,49 @@
       return out;
     }
     
+    const export_entries = () => {
+      const frameDoc = get_frame_document();
+      const ts_form = frameDoc.querySelector("#F1");
+
+      if (! ts_form) return false;
+      var download_btn = frameDoc.querySelector("#download-timesheet");
+      
+      if (download_btn.href !== null && download_btn.href !== "") {
+        window.URL.revokeObjectURL(download_btn.href);
+      }
+
+      const form_data = serialize_ts_form(ts_form);
+      
+      const blob = new Blob([JSON.stringify(form_data)], {type: "application/json"});
+
+      download_btn.href = window.URL.createObjectURL(blob);
+
+      download_btn.click();
+    }
+    
+    const add_file_buttons = (ts_form) => {
+
+        var export_btn = document.createElement("button");
+        export_btn.id = "export-timesheet";
+        export_btn.textContent = "Export";
+        
+
+        var download_btn = document.createElement("a");
+        download_btn.id = "download-timesheet";
+        download_btn.text = "Download";
+        //TODO: FINISH HERE
+        const start_date = ts_form.querySelector("[name='P_START_DATE'").value;
+        const job_number = ts_form.querySelector("[name='P_JOB_ARRAY'").value;
+        
+        download_btn.download = "timesheets_job_" + job_number + "_start_" + start_date + ".json";
+        download_btn.hidden = true;
+
+        ts_form.parentNode.insertBefore(export_btn, ts_form);
+        ts_form.parentNode.insertBefore(download_btn, ts_form);
+        
+        export_btn.addEventListener('click', export_entries);
+    }
+    
     const on_ts_form_ready = async () => {
         console.log("will await parent_form");
         waitForKeyElements(ts_form_selector, (parent_form) => {
@@ -141,11 +190,10 @@
 
             const ts_entries = ts_table.querySelector("#TSEntry");
             
+            add_file_buttons(parent_form);
+
             console.log({header_idxs: header_idxs});
 
-            var serialize_btn = document.createElement("a");
-            
-            serialize_ts_form(parent_form);
         });
     }
 
