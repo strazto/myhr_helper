@@ -294,8 +294,6 @@
     const inject_elements = (ts_form) => {
 
         inject_stylesheet();
-
-
         
         var myhr_helper_container = document.createElement("div");
         myhr_helper_container.id = "myhr-helper-toolbox";
