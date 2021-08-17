@@ -232,11 +232,8 @@
       style_element.innerText = stylesheet_text; 
       frameDoc.querySelector("head").appendChild(style_element);
     }
-    
-    const inject_elements = (ts_form) => {
-
-        inject_stylesheet();
-
+//    const add_file_buttons =  
+    const add_file_buttons = (container, ts_form) => {
         var export_btn = document.createElement("button");
         export_btn.id = "export-timesheet";
         export_btn.textContent = "Export";
@@ -270,6 +267,17 @@
           if (upload_input) upload_input.click();
         }, false);
 
+        upload_input.addEventListener("change", import_entries);
+        export_btn.addEventListener('click', export_entries);
+
+        container.appendChild(export_btn);
+        container.appendChild(download_btn);
+        container.appendChild(upload_input);
+        container.appendChild(upload_btn);
+    }
+    
+    const add_socials = (container) => {
+
         // Social Links / Cry for attention
         var repo_link = document.createElement("a");
         repo_link.href = homepage;
@@ -277,24 +285,26 @@
 
         var repo_badge = document.createElement("img");
         repo_badge.src = badge_src;
-        ts_form.parentNode.insertBefore(repo_link, ts_form);
         repo_link.appendChild(repo_badge);
         repo_link.classList.add("myhr-helper-gh-link");
+        
+        container.appendChild(repo_link);
+    }
+
+    const inject_elements = (ts_form) => {
+
+        inject_stylesheet();
+
+
         
         var myhr_helper_container = document.createElement("div");
         myhr_helper_container.id = "myhr-helper-toolbox";
         myhr_helper_container.classList.add("myhr-helper-toolbox");
         
-        myhr_helper_container.appendChild(repo_link);
-        myhr_helper_container.appendChild(export_btn);
-        myhr_helper_container.appendChild(download_btn);
-        myhr_helper_container.appendChild(upload_input);
-        myhr_helper_container.appendChild(upload_btn);
-        
+        add_socials(myhr_helper_container);
+        add_file_buttons(myhr_helper_container, ts_form);
         ts_form.parentNode.insertBefore(myhr_helper_container, ts_form);
 
-        upload_input.addEventListener("change", import_entries);
-        export_btn.addEventListener('click', export_entries);
     }
     
     const on_ts_form_ready = async () => {
