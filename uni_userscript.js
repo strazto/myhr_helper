@@ -17,6 +17,8 @@
 
 (function() {
     'use strict';
+    const homepage  = "https://github.com/matthewstrasiotto/myhr_helper";
+    const badge_src = "https://github-readme-stats.vercel.app/api/pin/?username=matthewstrasiotto&repo=myhr_helper&theme=dark&show_owner=true"
     
     const stylesheet_text = `
       .myhr-helper-toolbox {
@@ -268,11 +270,22 @@
           if (upload_input) upload_input.click();
         }, false);
 
+        // Social Links / Cry for attention
+        var repo_link = document.createElement("a");
+        repo_link.href = homepage;
+        repo_link.target = "_blank";
+
+        var repo_badge = document.createElement("img");
+        repo_badge.src = badge_src;
+        ts_form.parentNode.insertBefore(repo_link, ts_form);
+        repo_link.appendChild(repo_badge);
+        repo_link.classList.add("myhr-helper-gh-link");
         
         var myhr_helper_container = document.createElement("div");
         myhr_helper_container.id = "myhr-helper-toolbox";
         myhr_helper_container.classList.add("myhr-helper-toolbox");
         
+        myhr_helper_container.appendChild(repo_link);
         myhr_helper_container.appendChild(export_btn);
         myhr_helper_container.appendChild(download_btn);
         myhr_helper_container.appendChild(upload_input);
