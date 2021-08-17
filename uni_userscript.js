@@ -298,10 +298,7 @@
     }
     
     const on_ts_form_ready = async () => {
-        console.log("will await parent_form");
         waitForKeyElements(ts_form_selector, (parent_form) => {
-            console.log("FOUND PARENT FORM");
-
             const ts_table = parent_form.querySelector("table");
 
             const header_row = ts_table.querySelector("thead > tr");
@@ -316,8 +313,6 @@
 
         });
     }
-
-    console.log("keen for ts form to be ready");
 
     on_ts_form_ready();
 
