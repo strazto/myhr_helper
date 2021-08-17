@@ -18,6 +18,17 @@
 (function() {
     'use strict';
     
+    const stylesheet_text = `
+      .myhr-helper-toolbox {
+        display: grid;
+        border:  darkmagenta;
+        border-style: solid;
+        border-width: thin;
+      }
+    
+  `
+    
+
     const parent_frame_id = "pt1:r1:0:pt1:Main::f";
     const parent_form_action_suffix = "Process_TS1";
     
@@ -212,42 +223,62 @@
       reader.readAsText(file);
     }
     
+    const inject_stylesheet = () => {
+      const frameDoc = get_frame_document();
+
+      var style_element = frameDoc.createElement("style");
+      style_element.innerText = stylesheet_text; 
+      frameDoc.querySelector("head").appendChild(style_element);
+    }
+    
     const add_file_buttons = (ts_form) => {
+
+        inject_stylesheet();
 
         var export_btn = document.createElement("button");
         export_btn.id = "export-timesheet";
         export_btn.textContent = "Export";
+        export_btn.classList.add("myhr-helper-export-btn")
         
 
         var download_btn = document.createElement("a");
         download_btn.id = "download-timesheet";
         download_btn.text = "Download";
-        //TODO: FINISH HERE
+        
         const start_date = ts_form.querySelector("[name='P_START_DATE'").value;
         const job_number = ts_form.querySelector("[name='P_JOB_ARRAY'").value;
         
         download_btn.download = "timesheets_job_" + job_number + "_start_" + start_date + ".json";
         download_btn.hidden = true;
 
+        // Hidden Upload File-picker
         var upload_input    = document.createElement("input");
-        upload_input.id     = "upload-timesheet";
+        upload_input.id     = "myhr-helper-upload-timesheet";
         upload_input.type   = "file";
         upload_input.accept = "application/json";
         upload_input.hidden = true;
 
-        
+        // Visible upload button
         var upload_btn = document.createElement("button");
-        upload_btn.id = "import-timesheet";
+        upload_btn.id = "myhr-helper-import-timesheet";
         upload_btn.textContent = "Import";
+        upload_btn.classList.add("myhr-helper-import-btn");
 
         upload_btn.addEventListener("click", (e) => {
           if (upload_input) upload_input.click();
         }, false);
 
-        ts_form.parentNode.insertBefore(export_btn, ts_form);
-        ts_form.parentNode.insertBefore(download_btn, ts_form);
-        ts_form.parentNode.insertBefore(upload_input, ts_form);
-        ts_form.parentNode.insertBefore(upload_btn, ts_form);
+        
+        var myhr_helper_container = document.createElement("div");
+        myhr_helper_container.id = "myhr-helper-toolbox";
+        myhr_helper_container.classList.add("myhr-helper-toolbox");
+        
+        myhr_helper_container.appendChild(export_btn);
+        myhr_helper_container.appendChild(download_btn);
+        myhr_helper_container.appendChild(upload_input);
+        myhr_helper_container.appendChild(upload_btn);
+        
+        ts_form.parentNode.insertBefore(myhr_helper_container, ts_form);
 
         upload_input.addEventListener("change", import_entries);
         export_btn.addEventListener('click', export_entries);
