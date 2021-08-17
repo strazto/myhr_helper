@@ -233,7 +233,7 @@
       frameDoc.querySelector("head").appendChild(style_element);
     }
     
-    const add_file_buttons = (ts_form) => {
+    const inject_elements = (ts_form) => {
 
         inject_stylesheet();
 
@@ -307,7 +307,7 @@
 
             const ts_entries = ts_table.querySelector("#TSEntry");
             
-            add_file_buttons(parent_form);
+            inject_elements(parent_form);
 
             console.log({header_idxs: header_idxs});
 
