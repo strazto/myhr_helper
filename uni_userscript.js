@@ -1,15 +1,18 @@
 // ==UserScript==
-// @name         Unfuck your timesheets
+// @name         University of Sydney timesheet helper 
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
-// @author       You
+// @description  Improves the UX of the MyHR website at USYD - Allow export & import of timesheet forms to save re-typing.
+// @homepage     https://straz.to
+// @supportURL   https://github.com/matthewstrasiotto/myhr_helper/issues
+// @downloadURL  https://raw.githubusercontent.com/matthewstrasiotto/myhr_helper/main/uni_userscript.js
+// @author       Matthew Strasiotto
 // @match        https://myhr.sydney.edu.au/alesco-wss-v17/faces/WJ0000
 // @match        https://uosp.ascenderpay.com/uosp-wss/faces/app/WJ0000*
 // @icon         https://www.google.com/s2/favicons?domain=sydney.edu.au
-// @require https://cdn.jsdelivr.net/gh/CoeJoder/waitForKeyElements.js@v1.2/waitForKeyElements.js
+// @require      https://cdn.jsdelivr.net/gh/CoeJoder/waitForKeyElements.js@v1.2/waitForKeyElements.js
 // @grant        none
-// @run-at  document-end
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
