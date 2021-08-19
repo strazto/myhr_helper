@@ -18,7 +18,7 @@
 (function() {
     'use strict';
     const homepage  = "https://github.com/matthewstrasiotto/myhr_helper";
-    const badge_src = "https://github-readme-stats.vercel.app/api/pin/?username=matthewstrasiotto&repo=myhr_helper&theme=dark&show_owner=true"
+    const badge_src = "https://img.shields.io/github/stars/matthewstrasiotto/myhr_helper?style=social"
     
     const stylesheet_text = `
       .myhr-helper-toolbox {
@@ -26,6 +26,11 @@
         border:  darkmagenta;
         border-style: solid;
         border-width: thin;
+      }
+
+      .myhr-helper-info h4, .myhr-helper-info p {
+        margin-top: 2px;
+        margin-bottom: 2px;
       }
     
   `
@@ -277,18 +282,23 @@
     }
     
     const add_socials = (container) => {
-
-        // Social Links / Cry for attention
-        var repo_link = document.createElement("a");
-        repo_link.href = homepage;
-        repo_link.target = "_blank";
-
-        var repo_badge = document.createElement("img");
-        repo_badge.src = badge_src;
-        repo_link.appendChild(repo_badge);
-        repo_link.classList.add("myhr-helper-gh-link");
+        var repo_info = document.createElement("div");
         
-        container.appendChild(repo_link);
+        repo_info.id = "myhr-helper-info"; 
+        repo_info.classList.add("myhr-helper-info");
+
+        var repo_html = `
+        <h4>${GM.info.script.name} v${GM.info.script.version}</h4>
+        <p>
+          ${GM.info.script.description}
+          <br>
+          Star on github <a href="${homepage}"><img src="${badge_src}"></a>
+          <br>
+          <a href="${GM.info.script.supportURL}">Report a problem / Request an improvement</a>
+        </p>
+        `
+        repo_info.innerHTML = repo_html; 
+        container.appendChild(repo_info);
     }
 
     const inject_elements = (ts_form) => {
