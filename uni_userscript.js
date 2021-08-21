@@ -260,12 +260,37 @@
     const fill_timesheet = (input_entries, destination_form) => {
 
         const ts_table = destination_form.querySelector("#TSEntry");
-        const ts_rows  = ts_table.children;
+        const ts_rows  = Array.from(ts_table.children);
+
+        const find_first_empty = (ts_rows) => {
+          const row_is_empty = (row) => {
+
+            return writable_fields.every((field_name) => {
+              const input_element = row.querySelector("[name='" + field_name + "']");
+
+              if (input_element && input_element.value) return false;
+              return true;
+            });
+          };
+
+          return ts_rows.findIndex(row_is_empty);
+        }
+
+        const first_empty_idx = find_first_empty(ts_rows);
+        console.log({fun: "fill_timesheet", msg: "Found first empty idx", idx: first_empty_idx});
+        if (first_empty_idx < 0) {
+          console.log({fun: "fill_timesheet", msg: "unable to find an empty row!"});
+          return;
+        }
         
+        const ts_entries_to_fill = ts_rows.slice(first_empty_idx);
+
+
         input_entries.forEach((entry, i) => {
-          const row = ts_rows[i];
+          const row = ts_entries_to_fill[i];
 
           console.log({entry, i, row});
+
 
           writable_fields.forEach(( field_name ) => {
             var input_element = row.querySelector("[name='" + field_name + "']");
