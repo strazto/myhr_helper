@@ -11,6 +11,7 @@
 // @match        https://uosp.ascenderpay.com/uosp-wss/faces/*WJ0000*
 // @icon         https://www.google.com/s2/favicons?domain=sydney.edu.au
 // @require      https://cdn.jsdelivr.net/gh/CoeJoder/waitForKeyElements.js@v1.2/waitForKeyElements.js
+// @require      https://unpkg.com/papaparse@5.3.1/papaparse.min.js
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
@@ -34,7 +35,17 @@
       }
     
   `
-    
+    const ids = {
+      container : "myhr-helper-toolbox",
+      info      : "myhr-helper-info",
+      export_hidden  : "myhr-helper--export",
+      export_json_btn : "myhr-helper-export-json-btn",
+      export_csv_btn     : "myhr-helper-export-csv-btn",
+      import_json_btn    : "myhr-helper-import-json-btn",
+      import_json_hidden : "myhr-helper--import-json",
+      import_csv_btn     : "myhr-helper-import-csv-btn",
+      import_csv_hidden  : "myhr-helper--import-csv",
+    };    
 
     const parent_frame_id = "pt1:r1:0:pt1:Main::f";
     const parent_form_action_suffix = "Process_TS1";
@@ -161,27 +172,54 @@
       return out;
     }
     
-    const export_entries = () => {
+    const export_entries_csv = (form_data, download_link) => {
+      
+      const blob = new Blob([Papa.unparse(form_data.entries)], {type: "text/csv"});
+      download_link.download = get_filename() + ".csv";
+
+      return blob;
+    }
+    const export_entries_json = (form_data, download_link) => {
+      const blob = new Blob([JSON.stringify(form_data)], {type: "application/json"});
+      download_link.download = get_filename() + ".json";
+      return blob;
+    }
+    const export_entries = (e) => {
+      console.log({fun: "export_entries", e:e});
       const frameDoc = get_frame_document();
       const ts_form = frameDoc.querySelector("#F1");
 
       if (! ts_form) return false;
-      var download_btn = frameDoc.querySelector("#download-timesheet");
+      var download_link = frameDoc.getElementById(ids.export_hidden);
       
-      if (download_btn.href !== null && download_btn.href !== "") {
-        window.URL.revokeObjectURL(download_btn.href);
+      if (download_link.href !== null && download_link.href !== "") {
+        window.URL.revokeObjectURL(download_link.href);
       }
 
       const form_data = serialize_ts_form(ts_form);
-      
-      const blob = new Blob([JSON.stringify(form_data)], {type: "application/json"});
 
-      download_btn.href = window.URL.createObjectURL(blob);
+      var handler = export_entries_json;
 
-      download_btn.click();
+      if (e.srcElement.id == ids.export_csv_btn) handler = export_entries_csv;
+
+      const blob = handler(form_data, download_link);
+      download_link.href = window.URL.createObjectURL(blob);
+
+      download_link.click();
+    }
+    const fill_timesheet_csv = (destination_form) => {
+      const populate_dest = (e) => {
+        const input_data = Papa.parse(e.target.result, {header : true});
+        const input_entries = input_data.data;
+
+        console.log({dest: destination_form, payload: input_data});
+
+        fill_timesheet(input_entries, destination_form);
+      }
+      return populate_dest;
     }
 
-    const fill_timesheet = (destination_form) => {
+    const fill_timesheet_json = (destination_form) => {
       
       const populate_dest = (e) => {
 
@@ -190,6 +228,15 @@
         
         console.log({ dest: destination_form, payload: input_data});
 
+        fill_timesheet(input_entries, destination_form);
+
+        };
+
+
+      return populate_dest;
+    }
+    
+    const fill_timesheet = (input_entries, destination_form) => {
 
         const ts_table = destination_form.querySelector("#TSEntry");
         const ts_rows  = ts_table.children;
@@ -207,15 +254,20 @@
             }
           });
         });
+    }
+    const get_filename = () => {
+      const ts_form = ts_form_selector()[0];
 
-      }
+      const start_date = ts_form.querySelector("[name='P_START_DATE'").value;
+      const job_number = ts_form.querySelector("[name='P_JOB_ARRAY'").value;
+      const filename =  "timesheets_job_" + job_number + "_start_" + start_date;
 
-      return populate_dest;
+      return filename;
     }
 
     const import_entries = (e) => {
       const file_list = e.target.files;
-
+      console.log({fn: "import_entries", file_list : file_list});
       if (file_list.length < 1) return;
 
       const file = file_list[0];
@@ -224,10 +276,19 @@
       const ts_form = frameDoc.querySelector("#F1");
 
       if (! ts_form) return false;
-      
+
+      var onload_handler = fill_timesheet_json;
+
+      if (file.type != "application/json") {
+        onload_handler = fill_timesheet_csv;
+      }
+
       const reader = new FileReader();
-      reader.onload = fill_timesheet(ts_form); 
+      reader.onload = onload_handler(ts_form); 
       reader.readAsText(file);
+      
+      // Allow the onchange event to be triggered even if the same file is chosen
+      e.target.value = null;
     }
     
     const inject_stylesheet = () => {
@@ -237,56 +298,45 @@
       style_element.innerText = stylesheet_text; 
       frameDoc.querySelector("head").appendChild(style_element);
     }
-//    const add_file_buttons =  
-    const add_file_buttons = (container, ts_form) => {
-        var export_btn = document.createElement("button");
-        export_btn.id = "export-timesheet";
-        export_btn.textContent = "Export";
-        export_btn.classList.add("myhr-helper-export-btn")
+    
+  const add_file_buttons = (container, ts_form) => {
+        var export_json_btn = container.querySelector(`#${ids.export_json_btn}`);
+        var export_csv_btn  = container.querySelector(`#${ids.export_csv_btn}`);
+        var export_file_link = container.querySelector(`#${ids.export_hidden}`);
         
-
-        var download_btn = document.createElement("a");
-        download_btn.id = "download-timesheet";
-        download_btn.text = "Download";
+        export_file_link.download = get_filename() + ".json";
         
-        const start_date = ts_form.querySelector("[name='P_START_DATE'").value;
-        const job_number = ts_form.querySelector("[name='P_JOB_ARRAY'").value;
-        
-        download_btn.download = "timesheets_job_" + job_number + "_start_" + start_date + ".json";
-        download_btn.hidden = true;
+        var import_json_input = container.querySelector(`#${ids.import_json_hidden}`);
+        var import_json_btn = container.querySelector(`#${ids.import_json_btn}`);
 
-        // Hidden Upload File-picker
-        var upload_input    = document.createElement("input");
-        upload_input.id     = "myhr-helper-upload-timesheet";
-        upload_input.type   = "file";
-        upload_input.accept = "application/json";
-        upload_input.hidden = true;
+        var import_csv_input = container.querySelector(`#${ids.import_csv_hidden}`);
+        var import_csv_btn   = container.querySelector(`#${ids.import_csv_btn}`);
 
-        // Visible upload button
-        var upload_btn = document.createElement("button");
-        upload_btn.id = "myhr-helper-import-timesheet";
-        upload_btn.textContent = "Import";
-        upload_btn.classList.add("myhr-helper-import-btn");
-
-        upload_btn.addEventListener("click", (e) => {
-          if (upload_input) upload_input.click();
+        import_json_btn.addEventListener("click", (e) => {
+          if (import_json_input) import_json_input.click();
         }, false);
 
-        upload_input.addEventListener("change", import_entries);
-        export_btn.addEventListener('click', export_entries);
+        import_csv_btn.addEventListener("click", (e) => {
+          if (import_csv_input) import_csv_input.click();
+        }, false);
 
-        container.appendChild(export_btn);
-        container.appendChild(download_btn);
-        container.appendChild(upload_input);
-        container.appendChild(upload_btn);
+        import_csv_input.addEventListener("change", import_entries);
+        import_json_input.addEventListener("change", import_entries);
+        export_json_btn.addEventListener('click', export_entries);
+        export_csv_btn.addEventListener('click', export_entries);
     }
     
     const add_socials = (container) => {
-        var repo_info = document.createElement("div");
-        
-        repo_info.id = "myhr-helper-info"; 
-        repo_info.classList.add("myhr-helper-info");
+        const id = "myhr-helper-info";
 
+        var repo_info = container.querySelector(`#${id}`);
+        if (! repo_info ) { 
+          repo_info = document.createElement("div");
+          repo_info.id = id; 
+          repo_info.classList.add("myhr-helper-info");
+          container.appendChild(repo_info);
+        }
+        
         var repo_html = `
         <h4>${GM.info.script.name} v${GM.info.script.version}</h4>
         <p>
@@ -298,7 +348,6 @@
         </p>
         `
         repo_info.innerHTML = repo_html; 
-        container.appendChild(repo_info);
     }
 
     const inject_elements = (ts_form) => {
@@ -306,8 +355,27 @@
         inject_stylesheet();
         
         var myhr_helper_container = document.createElement("div");
-        myhr_helper_container.id = "myhr-helper-toolbox";
+        myhr_helper_container.id = ids.container;
         myhr_helper_container.classList.add("myhr-helper-toolbox");
+        
+        myhr_helper_container.innerHTML = `
+          <div id="${ids.info}" class="myhr-helper-info"></div>
+          <a id="${ids.export_hidden}" hidden></a>
+          <button id="${ids.export_json_btn}" class="myhr-helper-export-btn myhr-helper-json">
+            Export JSON
+          </button>
+          <button id="${ids.export_csv_btn}" class="myhr-helper-export-btn myhr-helper-csv">
+            Export CSV
+          </button>
+          <button id="${ids.import_json_btn}" class="myhr-helper-import-btn myhr-helper-json">
+            Import JSON
+          </button>
+          <input  id="${ids.import_json_hidden}" type="file" accept="application/json" hidden>
+          <button id="${ids.import_csv_btn}" class="myhr-helper-import-btn myhr-helper-csv">
+            Import CSV
+          </button>
+          <input  id="${ids.import_csv_hidden}" type="file" accept=".csv, text/csv" hidden>
+        `;
         
         add_socials(myhr_helper_container);
         add_file_buttons(myhr_helper_container, ts_form);
@@ -326,8 +394,6 @@
             const ts_entries = ts_table.querySelector("#TSEntry");
             
             inject_elements(parent_form);
-
-            console.log({header_idxs: header_idxs});
 
         });
     }
