@@ -27,13 +27,34 @@
         border:  darkmagenta;
         border-style: solid;
         border-width: thin;
+
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+          "top top"
+          "left right";
       }
 
       .myhr-helper-info h4, .myhr-helper-info p {
         margin-top: 2px;
         margin-bottom: 2px;
+        grid-area: top;
+      }
+
+      .mhr-helper-export-btn {
+        grid-column: 1 / span 1;
+      }
+      .myhr-helper-import-btn {
+        grid-column: 2 / span 1;
       }
     
+      .myhr-helper-csv {
+        grid-row: 2 / span 1;
+      }
+
+      .myhr-helper-json {
+        grid-row: 3 / span 1;
+      }
   `
     const ids = {
       container : "myhr-helper-toolbox",
