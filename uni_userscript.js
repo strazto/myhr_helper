@@ -440,16 +440,20 @@
 
       return calendar_iframe?.contentWindow;
     }
-    // TODO: Add function that resizes topic details, & adds validation / checks on topic details
-    // max length for topic details is <= 100, and there are certain characters that are restricted
-    // Disallowed chars:
-    // "#%+;<>
+    // * Resize topic details,
+    // * adds validation:
+    //   * topic details:
+    //     * Checks valid characters in topic details
+    //     * Disallowed chars:
+    //       "#%+;<>
+    //     * Ensure max length for topic details is <= 100
+    //   * dates 
+    //     * Checks date > start date
     // Attach an event listener to the table, and then use event delegation to check the target type & length
     //
-    // We also need validators for work date being < start date
-    // validator for that bug where if your contract renews on a date, you cant have a timesheet that spans that date
-    // but instead need to break it into two would be nice, but probably annoying to add 
-    // To allow this to apply to new rows, probably should use a mutationobserver
+    // TODO: validator for that bug where if your contract renews on a date, you cant have a timesheet that spans that date
+    //       but instead need to break it into two would be nice, but probably annoying to add 
+    // TODO: To allow this to apply to new rows, probably should use a mutationobserver
     
     const add_validation_resize_fields = (ts_form) => {
       const ts_table = ts_form.querySelector("table");
