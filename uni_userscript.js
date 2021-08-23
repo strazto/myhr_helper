@@ -428,6 +428,18 @@
 
     }
 
+    const get_calendar_frame_document = () => {
+      const frameDoc = get_frame_document();
+      const calendar_iframe = frameDoc.querySelector("iframe[title='calendar']");
+
+      return calendar_iframe?.contentDocument;
+    }
+    const get_calendar_frame_window = () => {
+      const frameDoc = get_frame_document();
+      const calendar_iframe = frameDoc.querySelector("iframe[title='calendar']");
+
+      return calendar_iframe?.contentWindow;
+    }
     // TODO: Add function that resizes topic details, & adds validation / checks on topic details
     // max length for topic details is <= 100, and there are certain characters that are restricted
     // Disallowed chars:
@@ -439,7 +451,9 @@
     // but instead need to break it into two would be nice, but probably annoying to add 
     // To allow this to apply to new rows, probably should use a mutationobserver
     
-    const add_validation_resize_fields = (ts_table) => {
+    const add_validation_resize_fields = (ts_form) => {
+      const ts_table = ts_form.querySelector("table");
+
       const topic_details_max_len = 100;
       const invalid_characters = ['"', '#', '%', '+', ';', '<', '>'];
 
@@ -449,22 +463,26 @@
         field.maxlength = topic_details_max_len;
       });
 
-      ts_table.addEventListener("change", (e) => {
-        console.log(e);
-        if (!(e.target && e.target.name && e.target.name == entry_input_names.topic_details)) {
-          return;
-        }
-
-        const parent = e.target.parentElement;
+      const get_warning_element = (element) => {
+        const parent = element.parentElement;
         var warning_element = parent.querySelector('.myhr-helper-input-warnings');
         if (! warning_element) {
-          warning_element = document.createElement('span');
+          warning_element = document.createElement('div');
           warning_element.classList.add('myhr-helper-input-warnings');
 
           parent.appendChild(warning_element);
         }
+        return warning_element;
+      }
+
+      ts_table.addEventListener("change", (e) => {
+        if (!(e.target && e.target.name && e.target.name == entry_input_names.topic_details)) {
+          return;
+        }
 
         var invalid_characters_seen = [];
+
+        const warning_element = get_warning_element(e.target);
 
         invalid_characters.forEach((c) => {
           if (e.target.value && e.target.value.includes(c)) {
@@ -478,7 +496,42 @@
         }
 
       });
+
+      const start_date = new Date(ts_form.querySelector("[name='P_START_DATE'").value);
+
+      const calendar_document = get_calendar_frame_document();
+
+      calendar_document.addEventListener("click", (e) => {
+        console.log(e);
+
+        const valid_classes = ["CalCell", "CellAnchor"];
+        // use this.gdCtrl to refer to the target input
+        if (!e.target) return;
+        if (! valid_classes.includes(e.target.className)) return;
+
+        const frame_window = get_calendar_frame_window();
+
+        if (frame_window?.gdCtrl) frame_window.gdCtrl.dispatchEvent(new Event('change', {bubbles: true}));
+      });
+      ts_table.addEventListener("change", (e) => {
+        if (!(e.target && e.target.name && e.target.name == entry_input_names.work_date)) {
+          return;
+        }
+
+        const warning_element = get_warning_element(e.target);
+        warning_element.textContent = "";
+
+        const date_value = e.target.value;
+        if (date_value && date_value !== "") {
+          const current_date = new Date(date_value);
+
+          if (current_date < start_date) {
+            warning_element.textContent = "Date Earlier than Start Date!";
+          }
+        }
+
       
+      });
 
     }
     const on_ts_form_ready = async () => {
@@ -493,7 +546,7 @@
             
             inject_elements(parent_form);
             
-            add_validation_resize_fields(ts_table);
+            add_validation_resize_fields(parent_form);
 
         });
     }
