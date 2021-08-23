@@ -257,33 +257,32 @@
       return populate_dest;
     }
     
+    // Give it a table row, tr, and check that all of the writable input fields are
+    // untouched 
+    const row_is_empty = (row) => {
+
+      return writable_fields.every((field_name) => {
+        const input_element = row.querySelector("[name='" + field_name + "']");
+
+        if (input_element && input_element.value) {
+          console.log({fun: "row_is_empty", msg: "Found non empty field, row not empty", row, field_name});
+          return false;
+        } 
+        return true;
+      });
+    };
+
     const fill_timesheet = (input_entries, destination_form) => {
 
         const ts_table = destination_form.querySelector("#TSEntry");
         const ts_rows  = Array.from(ts_table.children);
 
         const find_first_empty = (ts_rows) => {
-          const row_is_empty = (row) => {
-
-            return writable_fields.every((field_name) => {
-              const input_element = row.querySelector("[name='" + field_name + "']");
-
-              if (input_element && input_element.value) return false;
-              return true;
-            });
-          };
 
           return ts_rows.findIndex(row_is_empty);
         }
-
-        const first_empty_idx = find_first_empty(ts_rows);
-        console.log({fun: "fill_timesheet", msg: "Found first empty idx", idx: first_empty_idx});
-        if (first_empty_idx < 0) {
-          console.log({fun: "fill_timesheet", msg: "unable to find an empty row!"});
-          return;
-        }
         
-        const ts_entries_to_fill = ts_rows.slice(first_empty_idx);
+        const ts_entries_to_fill = ts_rows.filter(row_is_empty);
 
 
         input_entries.forEach((entry, i) => {
