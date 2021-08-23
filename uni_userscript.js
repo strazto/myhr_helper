@@ -427,7 +427,60 @@
         ts_form.parentNode.insertBefore(myhr_helper_container, ts_form);
 
     }
+
+    // TODO: Add function that resizes topic details, & adds validation / checks on topic details
+    // max length for topic details is <= 100, and there are certain characters that are restricted
+    // Disallowed chars:
+    // "#%+;<>
+    // Attach an event listener to the table, and then use event delegation to check the target type & length
+    //
+    // We also need validators for work date being < start date
+    // validator for that bug where if your contract renews on a date, you cant have a timesheet that spans that date
+    // but instead need to break it into two would be nice, but probably annoying to add 
+    // To allow this to apply to new rows, probably should use a mutationobserver
     
+    const add_validation_resize_fields = (ts_table) => {
+      const topic_details_max_len = 100;
+      const invalid_characters = ['"', '#', '%', '+', ';', '<', '>'];
+
+      const topic_details = ts_table.querySelectorAll(`[name='${entry_input_names.topic_details}']`);
+      topic_details.forEach((field) => {
+        field.size = topic_details_max_len;
+        field.maxlength = topic_details_max_len;
+      });
+
+      ts_table.addEventListener("change", (e) => {
+        console.log(e);
+        if (!(e.target && e.target.name && e.target.name == entry_input_names.topic_details)) {
+          return;
+        }
+
+        const parent = e.target.parentElement;
+        var warning_element = parent.querySelector('.myhr-helper-input-warnings');
+        if (! warning_element) {
+          warning_element = document.createElement('span');
+          warning_element.classList.add('myhr-helper-input-warnings');
+
+          parent.appendChild(warning_element);
+        }
+
+        var invalid_characters_seen = [];
+
+        invalid_characters.forEach((c) => {
+          if (e.target.value && e.target.value.includes(c)) {
+            invalid_characters_seen.push(c);
+          }
+        });
+
+        warning_element.textContent = "";
+        if (invalid_characters_seen.length > 0) {
+          warning_element.textContent = "Invalid Characters: " + invalid_characters_seen.join(' ');
+        }
+
+      });
+      
+
+    }
     const on_ts_form_ready = async () => {
         waitForKeyElements(ts_form_selector, (parent_form) => {
             const ts_table = parent_form.querySelector("table");
@@ -439,6 +492,8 @@
             const ts_entries = ts_table.querySelector("#TSEntry");
             
             inject_elements(parent_form);
+            
+            add_validation_resize_fields(ts_table);
 
         });
     }
